@@ -1,12 +1,12 @@
 <template>
 <div class="section editor">
         <div class="columns">
-            <div class="column">
+            <div class="column is-8">
                  <div class="shape-panel box">
                     <ShapeEditor/>
                 </div>
             </div>
-            <div class="column is-narrow">
+            <div class="column is-4">
                 <div class="preview-panel box">
                     <PreviewPanel/>
                 </div>
@@ -39,9 +39,12 @@ components:{
 <style>
 .editor {
     padding: 24px;
+    /* display: flex; */
+    /* flex-grow: 1; */
 }
 .preview_panel {
     flex-grow: 1;
+    /* height: 300px; */
 }
 .settings-panel {
     flex-grow: 1;

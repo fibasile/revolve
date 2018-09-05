@@ -21,7 +21,24 @@ export default {
           controls: null
         }
       },
+    mounted(){
+        this.init();
+        this.animate();
+        this.$nextTick(function(){
+            window.addEventListener('resize', this.handleResize);
+        })
+    },
+    beforeDestroy(){
+        window.removeEventListener('resize',this);
+    },
     methods: {
+        handleResize(){
+            this.$nextTick(function(){
+                let container = this.$refs.previewPanel; 
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(container.clientWidth, container.clientWidth*.75);
+            })
+        },
         init: function() {
             let container = this.$refs.previewPanel; // document.getElementById('shape-editor');
     
@@ -47,7 +64,7 @@ export default {
 
             this.renderer = new THREE.WebGLRenderer({antialias: true});
             this.renderer.setClearColor(new THREE.Color(1.0,1.0,1.0),1.0);
-            this.renderer.setSize(container.clientWidth, container.clientHeight);
+            this.renderer.setSize(container.clientWidth, container.clientWidth*.75);
             
             this.controls = new OrbitControls( this.camera, this.renderer.domElement);
             this.controls.update();
@@ -63,10 +80,6 @@ export default {
             this.renderer.render(this.scene, this.camera);
         }
   },
-  mounted() {
-    this.init();
-    this.animate()
-  }
 }
 </script>
 <style>
