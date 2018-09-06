@@ -3,12 +3,12 @@
         <div class="columns">
             <div class="column is-8">
                  <div class="shape-panel box">
-                    <ShapeEditor/>
+                    <ShapeEditor @previewUpdated="previewUpdated"/>
                 </div>
             </div>
             <div class="column is-4">
                 <div class="preview-panel box">
-                    <PreviewPanel/>
+                    <PreviewPanel :mesh="previewMesh"/>
                 </div>
                  <div class="settings-panel box">
                     <SettingsPanel/>
@@ -24,14 +24,23 @@ import PreviewPanel from '@/components/PreviewPanel.vue'
 import SettingsPanel from '@/components/SettingsPanel.vue'
 
 export default {
-components:{
-  ShapeEditor, PreviewPanel, SettingsPanel  
-    
-},
+    components:{
+    ShapeEditor, PreviewPanel, SettingsPanel  
+        
+    },
     data(){
         return {
-            filename:'Untitled'
-        }    }    
+            filename:'Untitled',
+            previewMesh: null
+        }        
+    },
+    methods:{
+        previewUpdated(mesh){
+            // console.log('Received mesh');
+            // console.log(mesh);
+            this.previewMesh = mesh;
+        }
+    }
     
 }
 </script>

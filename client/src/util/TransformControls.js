@@ -761,7 +761,7 @@ THREE.TransformControlsGizmo = function () {
 			[ new THREE.Mesh( new THREE.OctahedronBufferGeometry( 0.1, 0 ), matWhiteTransperent ), [ 0, 0, 0 ], [ 0, 0, 0 ] ]
 		],
 		XY: [
-			[ new THREE.Mesh( new THREE.PlaneBufferGeometry( 0.295, 0.295 ), matYellowTransparent ), [ 0.15, 0.15, 0 ] ],
+			[ new THREE.Mesh( new THREE.PlaneBufferGeometry( 0.2, 0.2 ), matYellowTransparent ), [0,0, 0 ] ],
 			[ new THREE.Line( lineGeometry, matLineYellow ), [ 0.18, 0.3, 0 ], null, [ 0.125, 1, 1 ] ],
 			[ new THREE.Line( lineGeometry, matLineYellow ), [ 0.3, 0.18, 0 ], [ 0, 0, Math.PI / 2 ], [ 0.125, 1, 1 ] ]
 		],
@@ -791,7 +791,7 @@ THREE.TransformControlsGizmo = function () {
 			[ new THREE.Mesh( new THREE.OctahedronBufferGeometry( 0.2, 0 ), matInvisible ) ]
 		],
 		XY: [
-			[ new THREE.Mesh( new THREE.PlaneBufferGeometry( 0.4, 0.4 ), matInvisible ), [ 0.2, 0.2, 0 ] ]
+			[ new THREE.Mesh( new THREE.PlaneBufferGeometry( 0.4, 0.4 ), matHelper ), [ 0, 0, 0 ] ]
 		],
 		YZ: [
 			[ new THREE.Mesh( new THREE.PlaneBufferGeometry( 0.4, 0.4 ), matInvisible ), [ 0, 0.2, 0.2 ], [ 0, Math.PI / 2, 0 ] ]
@@ -1316,7 +1316,9 @@ THREE.TransformControlsGizmo = function () {
 			handle.visible = handle.visible && ( handle.name.indexOf( "X" ) === -1 || this.showX );
 			handle.visible = handle.visible && ( handle.name.indexOf( "Y" ) === -1 || this.showY );
 			handle.visible = handle.visible && ( handle.name.indexOf( "Z" ) === -1 || this.showZ );
-			handle.visible = handle.visible && ( handle.name.indexOf( "E" ) === -1 || ( this.showX && this.showY && this.showZ ) );
+			handle.visible = handle.visible && ( handle.name.indexOf( "E" ) === -1 || ( this.showX && this.showY ) );
+
+			/* && this.showZ **/
 
 			// highlight selected axis
 

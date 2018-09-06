@@ -10,9 +10,14 @@ import * as THREE from "three";
 import OrbitControls from "three-orbitcontrols";
 import DragControls from "../util/DragControls";
 import TransformControls from "../util/TransformControls";
+import Revolve from "../util/Revolve";
+
 const ARC_SEGMENTS = 50;
 
 export default {
+    props: [
+        "previewUpdated"
+    ],
   data() {
     return {
       camera: null,
@@ -25,6 +30,9 @@ export default {
       curveMirror: null,
       dragcontrols: null,
       transformcontrols: null,
+      planeHelper: null,
+      previewMaterial: new THREE.MeshToonMaterial({color: 0xffccff}),
+      previewMesh: null,
       positions: [
         //   new THREE.Vector3(0,-100,0),
           new THREE.Vector3(-30,-100, 0),
@@ -51,6 +59,9 @@ export default {
   },
   beforeDestroy() {
     // console.log('event listener remove');
+    if (this.previewTimer){
+            clearTimeout(this.previewTimer)
+    }
     window.removeEventListener("resize", this.handleResize);
   },
   methods: {
@@ -100,9 +111,9 @@ export default {
       this.renderer.shadowMap.enabled = true;
       container.appendChild(this.renderer.domElement);
 
+      this.initHelpers();
       this.initLights();
       this.initGeometry();
-      this.initHelpers();
       this.initControls();
 
       this.handleResize();
@@ -117,6 +128,7 @@ export default {
       helper.material.opacity = 0.25;
       helper.material.transparent = true;
       this.scene.add(helper);
+      this.planeHelper = helper;
     },
 
     initCurve(){
@@ -147,7 +159,9 @@ export default {
 
         this.scene.add(this.curveMirror);
 
-        this.updateCurve();
+        this.updateCurve(true);
+
+ 
 
     },
     initHandlers() {
@@ -204,11 +218,14 @@ export default {
         var vm = this;
         
         this.transformcontrols  = new TransformControls( this.camera,  this.renderer.domElement );
-		this.transformcontrols .addEventListener( 'change', this.render );
+        this.transformcontrols.showZ = false;
+		this.transformcontrols.addEventListener( 'change', function(e){
+                //   vm.updateCurve();
+        } );
         this.scene.add(  this.transformcontrols  );
 
         this.transformcontrols.addEventListener( 'objectChange', function( e ) {
-				vm.updateCurve();
+			 vm.updateCurve();
         });
 
         this.dragcontrols = new DragControls( this.handles, this.camera, this.renderer.domElement ); //
@@ -217,19 +234,27 @@ export default {
             // transformControl.attach( event.object );
             // cancelHideTransorm();
             vm.transformcontrols.attach(event.object);
-            console.log('selected event object')
+            // console.log('selected event object')
         } );
         this.dragcontrols.addEventListener( 'hoveroff', function ( event ) {
             vm.transformcontrols.detach(vm.transformcontrols.object);
-            console.log('deselected')
+            // console.log('deselected')
+				vm.updateCurve(true);
         } );
 
 
                 
     },
-    updateCurve(){
+    updateCurve(preview){
 
-       
+              var min = 100000;
+        this.handles.forEach((h)=>{
+            if (h.position.y < min ) min = h.position.y;
+        })
+        if (this.planeHelper)
+            this.planeHelper.position.y = min;
+        // console.log(min)
+
         var splineMesh = this.curve;
         var mirrorMesh = this.curveMirror;
         var handlePositions = this.handles.map(h=> h.position)
@@ -238,27 +263,64 @@ export default {
         curve.curveType = 'catmullrom';
         
         var points =curve.getPoints( ARC_SEGMENTS );
-        
+        var startPoint = points[0]
         points.push(new THREE.Vector3(0,points[points.length-1].y, 0 ) )
-        points.unshift(new THREE.Vector3(0, points[0].y, 0))
-
+        points.unshift(new THREE.Vector3(0, startPoint.y, 0))
+        
         var position = splineMesh.geometry.attributes.position;
         for (var i=0; i<points.length; i++){
             position.setXYZ(i, points[i].x,points[i].y,points[i].z);
         }
         position.needsUpdate = true;
-
-
         
         var mirrorPoints = points.map((p)=>{
             return p.reflect(new THREE.Vector3(1,0,0));  
         })
 
         var position2 = mirrorMesh.geometry.attributes.position;
+
         for (var i=0; i<mirrorPoints.length; i++){
             position2.setXYZ(i, mirrorPoints[i].x,mirrorPoints[i].y,mirrorPoints[i].z);
         }
         position2.needsUpdate = true;
+
+        // this.$nextTick(()=>{
+            
+        // })
+        if (preview){
+            this.updatePreview(points.map((v)=>{
+                v.y += -this.planeHelper.position.y
+                return v
+            }), 32); 
+        }
+    },
+    updatePreview(points, segments){
+        var geometry = Revolve.revolve(THREE, points, segments);
+        geometry.mergeVertices();
+        geometry.computeFaceNormals();
+        geometry.computeVertexNormals();
+        var oldMesh = this.previewMesh;
+        // if (oldMesh){
+            // this.scene.remove(oldMesh);
+            // oldMesh.dispose();
+            // this.previewMesh.geometry.fromGeometry(bufferGeometry);
+            // var geo = this.previewMesh.geometry;
+            // geo.positions = bufferGeometry.positions;
+            // geo.positionsNeedUpdate = true;
+            // geo.vertices = geometry.vertices;
+            // geo.faces = geometry.faces;
+            // geo.verticesNeedUpdate = true;
+            // geo.elementsNeedUpdate = true;
+            // geo.mergeVertices();
+            // geo.computeFaceNormals();
+    	    // geo.computeBoundingSphere();
+        // } 
+        this.previewMesh = new THREE.Mesh( geometry, this.previewMaterial )
+        // this.scene.add(this.previewMesh)
+        
+        // if (this.previewUpdated){
+            this.$emit('previewUpdated',this.previewMesh)
+        // }
 
     },
     animate() {
@@ -267,7 +329,6 @@ export default {
       this.renderer.render(this.scene, this.camera);
     },
     render(){
-
     }
   }
 };
